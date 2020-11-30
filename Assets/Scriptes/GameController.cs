@@ -14,7 +14,8 @@ public class GameController : MonoBehaviour
     private float xsteep;
     private float ysteep;
     private Vector2 pos;
-    public bool vertical=false;
+    private bool vertical=true;
+    private bool wait=false;
    
     void Start()
     {
@@ -34,6 +35,7 @@ public class GameController : MonoBehaviour
     	 pos =transform.position;
          transform.position = new Vector2(transform.position.x+xsteep,transform.position.y+ysteep);
          MoveBody(); 
+         wait=true;
     }
 
     private void AddPart(){
@@ -41,6 +43,7 @@ public class GameController : MonoBehaviour
   	    GameObject partClone = Instantiate(part,pos, Quaternion.identity);
     	body.Insert(0,partClone);
     	if(body.Count==2){AddPart();}
+    	
     }
 
 
@@ -58,7 +61,6 @@ public class GameController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other){
     	
     	if(other.tag=="goal"){
-    		Debug.Log("goaaaal");
     		AddPart();
     		Destroy(other.gameObject);
     		MakeGoal();
@@ -73,23 +75,23 @@ public class GameController : MonoBehaviour
     private void Update()
     {
     	
-    	if(vertical){
+    	if(vertical & wait){
 
     	  if(Input.GetAxis("Horizontal")>0)
-    		{xsteep=steep; ysteep=0;vertical = false;}
+    		{xsteep=steep; ysteep=0;vertical = false; wait=false;}
 
     	  else if(Input.GetAxis("Horizontal")<0)
-    		{xsteep=-steep; ysteep =0;vertical = false;}
+    		{xsteep=-steep; ysteep =0;vertical = false;wait=false;}
     		
     	}
 
-    	else{
+    	 if(!vertical&wait){
 
     	   if(Input.GetAxis("Vertical")>0)
-    		 {ysteep=steep; xsteep=0;vertical=true;}
+    		 {ysteep=steep; xsteep=0;vertical=true;wait=false;}
     	
     	   else if(Input.GetAxis("Vertical")<0)
-    		 {ysteep=-steep; xsteep=0;vertical=true;}
+    		 {ysteep=-steep; xsteep=0;vertical=true;wait=false;}
     		
     	}
     }
