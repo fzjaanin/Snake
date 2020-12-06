@@ -6,34 +6,40 @@ using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
-	public GameObject walls;
-	public GameObject goal;
 	public GameObject part;
 	public List<GameObject> body;
-	public float steep;
-    private float xsteep;
-    private float ysteep;
+    private int xsteep;
+    private int ysteep;
     private Vector2 pos;
     private bool vertical=true;
     private bool wait=false;
+    private Gridd grid;
+    private Walls walls;
+    private Food food;
+    private int x, y;
    
     void Start()
     {
-        Instantiate(walls, transform.position, Quaternion.identity);
+        grid = new Gridd(24, 16, 0.5f, new Vector3(-6, -4)); 
+        walls = new Walls(grid);
+        food = new Food(grid); 
         body = new List<GameObject>();
-        MakeGoal();
+        x = grid.Width / 2;
+        y = grid.Height / 2;
+
+        transform.position = grid.GetMiddlePosition(x,y );
         InvokeRepeating("Move", 0.2f, 0.2f);
+        
+
     }
 
-    private void MakeGoal(){
-    	int x=Random.Range(-4,4);
-    	int y=Random.Range(-3,3);
-    	Instantiate(goal, new Vector2(x,y), Quaternion.identity);
-    }
+
 
     private void Move(){
+        x = x + xsteep;
+        y = y + ysteep;
     	 pos =transform.position;
-         transform.position = new Vector2(transform.position.x+xsteep,transform.position.y+ysteep);
+        transform.position = grid.GetMiddlePosition(x, y);
          MoveBody(); 
          wait=true;
     }
@@ -41,29 +47,30 @@ public class GameController : MonoBehaviour
     private void AddPart(){
 
   	    GameObject partClone = Instantiate(part,pos, Quaternion.identity);
-    	body.Insert(0,partClone);
-    	if(body.Count==2){AddPart();}
-    	
+    	body.Insert(body.Count,partClone); 	
     }
 
 
     private void MoveBody(){
     	if(body.Count>0){
-    	    body[0].transform.position=pos;
-
-    	    for(int i=body.Count-1;i>0;i--){
-    		   body[i].transform.position=body[i-1].transform.position;
-    	   }
+            if (body.Count > 1)
+            {
+                for (int i = body.Count-1; i>0; i--)
+                {
+                    body[i].transform.position = body[i - 1].transform.position;
+                }
+            }
+            body[0].transform.position = pos;
        }
     }
 
 
     private void OnTriggerEnter2D(Collider2D other){
     	
-    	if(other.tag=="goal"){
+    	if(other.tag=="food"){
     		AddPart();
     		Destroy(other.gameObject);
-    		MakeGoal();
+            food = new Food(grid);
     	}
     	else{
     		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -78,20 +85,20 @@ public class GameController : MonoBehaviour
     	if(vertical & wait){
 
     	  if(Input.GetAxis("Horizontal")>0)
-    		{xsteep=steep; ysteep=0;vertical = false; wait=false;}
+    		{xsteep=1; ysteep=0;vertical = false; wait=false;}
 
     	  else if(Input.GetAxis("Horizontal")<0)
-    		{xsteep=-steep; ysteep =0;vertical = false;wait=false;}
+    		{xsteep=-1; ysteep =0;vertical = false;wait=false;}
     		
     	}
 
     	 if(!vertical&wait){
 
     	   if(Input.GetAxis("Vertical")>0)
-    		 {ysteep=steep; xsteep=0;vertical=true;wait=false;}
+    		 {ysteep=1; xsteep=0;vertical=true;wait=false;}
     	
     	   else if(Input.GetAxis("Vertical")<0)
-    		 {ysteep=-steep; xsteep=0;vertical=true;wait=false;}
+    		 {ysteep=-1; xsteep=0;vertical=true;wait=false;}
     		
     	}
     }
